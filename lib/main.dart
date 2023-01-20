@@ -94,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           // Das ist ein Kommentar
+          // Das ist der 2. Kommentar
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
