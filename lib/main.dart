@@ -1,7 +1,10 @@
+import 'package:applock/platform_tests.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
+
+  print(await getBatteryLevel());
 }
 
 class MyApp extends StatelessWidget {
