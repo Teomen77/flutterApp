@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 void main() async {
   runApp(const MyApp());
 
-  int batteryLevel = await getBatteryLevel();
-  print("Battery Level: $batteryLevel");
-
   List<AppInfo> installedApps = await getInstalledApps();
   printAppList(installedApps);
 }

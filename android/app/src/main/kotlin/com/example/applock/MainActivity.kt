@@ -22,16 +22,7 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
             call, result ->
-            if(call.method == "getBatteryLevel") {
-                val batteryLevel = getBatteryLevel()
-                if(batteryLevel != -1) {
-                    result.success(batteryLevel)
-                }
-                else {
-                    result.error("UNAVAILABLE", "Battery level not available", null)
-                }
-            }
-            else if(call.method == "getInstalledApps") {
+            if(call.method == "getInstalledApps") {
                 val installedApps = getInstalledApps()
                 result.success(installedApps)
             }
@@ -39,21 +30,6 @@ class MainActivity: FlutterActivity() {
                 result.notImplemented()
             }
         }
-    }
-
-    private fun getBatteryLevel(): Int {
-        val batteryLevel: Int
-        if(VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-            val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-        }
-        else {
-            var intent = ContextWrapper(applicationContext).registerReceiver(null, IntentFilter(
-                Intent.ACTION_BATTERY_CHANGED))
-            batteryLevel = intent!!.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / intent.getIntExtra(
-                BatteryManager.EXTRA_SCALE, -1)
-        }
-        return batteryLevel
     }
 
     private fun getInstalledApps(): List<Map<String, Any?>> {
