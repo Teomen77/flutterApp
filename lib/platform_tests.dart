@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const platform = MethodChannel("com.applock.dev/test");
 
@@ -22,8 +24,35 @@ class AppInfo {
 
 void printAppList(List<AppInfo> appInfoList) {
   String? appList = appInfoList
-      .map((app) => app.packageName)
+      .map((app) => app.name)
       .fold("", (previousValue, element) => "$previousValue, $element")
       .substring(2);
   print("Installed Apps: $appList");
+}
+
+SharedPreferences? prefs;
+String lockedPackagesKey = "locked";
+List<String> lockedPackages = [];
+
+void initPrefs() async {
+  prefs = await SharedPreferences.getInstance();
+}
+
+void loadLockedPackages() {
+  lockedPackages = prefs!.getStringList(lockedPackagesKey) ?? [];
+}
+
+void addLockedPackage(String packageName) async {
+  lockedPackages.add(packageName);
+  await prefs!.setStringList(lockedPackagesKey, lockedPackages);
+}
+
+void removeLockedPackage(String packageName) async {
+  lockedPackages.remove(packageName);
+  await prefs!.setStringList(lockedPackagesKey, lockedPackages);
+}
+
+void removeLockedPackageAt(int i) async {
+  lockedPackages.removeAt(i);
+  await prefs!.setStringList(lockedPackagesKey, lockedPackages);
 }

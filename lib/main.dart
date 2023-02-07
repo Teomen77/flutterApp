@@ -6,6 +6,8 @@ void main() async {
 
   List<AppInfo> installedApps = await getInstalledApps();
   printAppList(installedApps);
+
+  initPrefs();
 }
 
 class MyApp extends StatelessWidget {
