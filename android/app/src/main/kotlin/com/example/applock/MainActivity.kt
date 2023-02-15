@@ -5,15 +5,10 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.os.BatteryManager
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.applock.dev/test"
@@ -35,11 +30,16 @@ class MainActivity: FlutterActivity() {
     private fun getInstalledApps(): List<Map<String, Any?>> {
         val packageManager = activity.packageManager as PackageManager
 
-        // TODO: Implement check for Tiramisu SDK version and use non-deprecated getInstalledApplications()
-        var appList = packageManager.getInstalledApplications(0)
-        appList = appList.filter { app -> !isSystemApp(packageManager, app.packageName) }
+        val appList: List<ApplicationInfo>
+        if(VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
+            appList = packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+        }
+        else {
+            appList = packageManager.getInstalledApplications(0)
+        }
+        var filteredList = appList.filter { app -> !isSystemApp(packageManager, app.packageName) }
 
-        var mappedList = appList.map {app -> appToMap(packageManager, app)}
+        var mappedList = filteredList.map {app -> appToMap(packageManager, app)}
         val comp = Comparator {appA: HashMap<String, Any?>, appB: HashMap<String, Any?> -> appA["name"].toString().lowercase().compareTo(appB["name"].toString().lowercase())}
         mappedList = mappedList.sortedWith(comp)
 
