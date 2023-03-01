@@ -6,7 +6,7 @@ void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static const String _title = 'Applock';
+  static const String title = 'Applock';
 
   @override
   Widget build(BuildContext context) {

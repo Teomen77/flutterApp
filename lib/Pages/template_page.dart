@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-class TemplatePage extends StatefulWidget {
+class TemplatePage extends StatelessWidget {
   const TemplatePage({Key? key}) : super(key: key);
 
   @override
-  State<TemplatePage> createState() => _TemplatePageState();
-}
-
-class _TemplatePageState extends State<TemplatePage> {
-  @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Templates'),
+      ),
+      body: Center(
+        child: const Text('TemplatePage'),
+      ),
+    );
   }
 }
+
