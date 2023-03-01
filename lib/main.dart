@@ -1,13 +1,7 @@
-import 'package:applock/platform_tests.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
   runApp(const MyApp());
-
-  List<AppInfo> installedApps = await getInstalledApps();
-  printAppList(installedApps);
-
-  initPrefs();
 }
 
 class MyApp extends StatelessWidget {
