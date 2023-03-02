@@ -9,8 +9,8 @@ class StatsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Stats'),
       ),
-      body: Center(
-        child: const Text('Stats Page'),
+      body: const Center(
+        child: Text('Stats Page'),
       ),
     );
   }
