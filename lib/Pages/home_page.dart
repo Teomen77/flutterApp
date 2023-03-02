@@ -1,3 +1,5 @@
+import 'package:applock/Platform/host_communication.dart';
+import 'package:applock/app_lock_list.dart';
 import 'package:flutter/material.dart';
 import 'package:applock/Pages/stats_page.dart';
 import 'package:applock/Pages/settings_page.dart';
@@ -7,10 +9,12 @@ class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  final Future<List<AppInfo>> appInfo = getInstalledApps();
+
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -59,10 +63,28 @@ class _HomePageState extends State<HomePage> {
   Widget _getPage(int index) {
     switch (index) {
       case 0:
-        return Container(
-          child: const Center(
-            child: Text('Home Page'),
-          ),
+        return FutureBuilder<List<AppInfo>>(
+          future: appInfo,
+          builder: (context, snapshot) {
+            Widget child;
+            if (snapshot.hasData) {
+              child = ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                shrinkWrap: true,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return AppListItem(
+                    appName: snapshot.data![index].name!,
+                    packageName: snapshot.data![index].packageName!,
+                  );
+                },
+              );
+            } else {
+              child = const SizedBox(
+                  width: 100, height: 100, child: CircularProgressIndicator());
+            }
+            return Center(child: child);
+          },
         );
       case 1:
         return const StatsPage();
@@ -73,5 +95,58 @@ class _HomePageState extends State<HomePage> {
       default:
         return Container();
     }
+  }
+}
+
+class AppListItem extends StatefulWidget {
+  const AppListItem(
+      {super.key, required this.appName, required this.packageName});
+
+  final String appName;
+  final String packageName;
+
+  @override
+  State<AppListItem> createState() => _AppListItemState();
+}
+
+class _AppListItemState extends State<AppListItem> {
+  Icon getLockButtonIcon() {
+    if (isPackageLocked(widget.packageName)) {
+      return const Icon(Icons.lock);
+    } else {
+      return const Icon(Icons.lock_open);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.blueGrey,
+        child: Text(widget.appName[0]),
+      ),
+      title: Text(
+        widget.appName,
+        style: const TextStyle(
+          color: Colors.black54,
+        ),
+      ),
+      trailing: IconButton(
+          onPressed: () {
+            if (isPackageLocked(widget.packageName)) {
+              setState(() {
+                unlockPackage(widget.packageName);
+              });
+            } else {
+              setState(() {
+                lockPackage(widget.packageName);
+              });
+            }
+          },
+          icon: getLockButtonIcon()),
+      onTap: () {
+        //print("$appName clicked!");
+      },
+    );
   }
 }
