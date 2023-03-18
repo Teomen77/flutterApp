@@ -1,5 +1,7 @@
 package com.example.applock
 
+import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -9,9 +11,35 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
+import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
+import android.view.accessibility.AccessibilityEvent
+
+class AppOpeningAccessibilityService : AccessibilityService() {
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if(event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            Log.d("AccessibilityService", "Package opened: " + event?.packageName)
+        }
+    }
+
+    override fun onInterrupt() {}
+}
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.applock.dev/platform"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val accessibilityService = Intent(this, AppOpeningAccessibilityService::class.java)
+        startService(accessibilityService)
+
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        startActivity(intent)
+
+        Log.d("Applock", "Main activity started!")
+    }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
