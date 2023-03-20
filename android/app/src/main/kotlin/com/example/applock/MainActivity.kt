@@ -1,6 +1,7 @@
 package com.example.applock
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
 import android.content.Intent
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -19,7 +20,31 @@ import android.view.accessibility.AccessibilityEvent
 class AppOpeningAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if(event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            Log.d("AccessibilityService", "Package opened: " + event?.packageName)
+            val packageName = event?.packageName
+
+            // Prevent infinite loop
+            if(packageName == getPackageName()) return
+
+            Log.d("AccessibilityService", "Package opened: $packageName")
+
+            // See shared_preferences_android plugin code on GitHub for name and mode reference
+            /*
+            Some part of the SharedPreferences logic will need to be added here, but then we need to maintain feature parity between
+            the shared_preferences_android plugin from Flutter and our custom implementation.
+
+            Having to open an entire FlutterActivity just to check if a certain package is locked on the Dart side is not only very wasteful
+            but it also leads to strange black/white screens that lock the entire phone, so definitely not ideal.
+
+            We might need to rethink our strategy for this app. Maybe start with an Android app and add Flutter to that instead of this
+            strange two-way setup where Android code is added to a Flutter app, but said code also influences the Flutter app itself
+            by starting new activities.
+
+            Lennart
+            */
+            val shared_prefs = this.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+
+            val lockIntent = FlutterActivity.withNewEngine().dartEntrypointArgs(listOf(packageName.toString())).build(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(lockIntent)
         }
     }
 
