@@ -20,3 +20,17 @@ class AppInfo {
     return AppInfo(data["name"], data["package_name"]);
   }
 }
+
+Future<void> lockPackage(String packageName) async {
+  await platformChannel
+      .invokeMethod("lockPackage", <String, dynamic>{"value": packageName});
+}
+
+Future<void> unlockPackage(String packageName) async {
+  await platformChannel.invokeMapMethod(
+      "unlockPackage", <String, dynamic>{"value": packageName});
+}
+
+Future<bool> isPackageLocked(String packageName) async {
+  return await platformChannel.invokeMethod("isPackageLocked");
+}

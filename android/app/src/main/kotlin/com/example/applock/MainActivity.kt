@@ -3,6 +3,7 @@ package com.example.applock
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -18,6 +19,28 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 
 class AppOpeningAccessibilityService : AccessibilityService() {
+    private lateinit var sharedPrefs: SharedPreferences
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase)
+        sharedPrefs =
+            newBase!!.getSharedPreferences("ApplockSharedPreferences", Context.MODE_PRIVATE)
+
+        togglePackageLock("com.google.android.youtube", true)
+    }
+
+    fun togglePackageLock(packageName: String, locked: Boolean) {
+        sharedPrefs.edit().putBoolean(packageName, locked).apply()
+    }
+
+    fun isPackageLocked(packageName: String): Boolean {
+        if(sharedPrefs.contains(packageName)) {
+            return sharedPrefs.getBoolean(packageName, false)
+        }
+        else {
+            return false
+        }
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if(event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event?.packageName
@@ -27,24 +50,12 @@ class AppOpeningAccessibilityService : AccessibilityService() {
 
             Log.d("AccessibilityService", "Package opened: $packageName")
 
-            // See shared_preferences_android plugin code on GitHub for name and mode reference
-            /*
-            Some part of the SharedPreferences logic will need to be added here, but then we need to maintain feature parity between
-            the shared_preferences_android plugin from Flutter and our custom implementation.
+            if(isPackageLocked(packageName.toString())) {
+                Log.d("AccessibilityService", "Locked package opened: $packageName")
 
-            Having to open an entire FlutterActivity just to check if a certain package is locked on the Dart side is not only very wasteful
-            but it also leads to strange black/white screens that lock the entire phone, so definitely not ideal.
-
-            We might need to rethink our strategy for this app. Maybe start with an Android app and add Flutter to that instead of this
-            strange two-way setup where Android code is added to a Flutter app, but said code also influences the Flutter app itself
-            by starting new activities.
-
-            Lennart
-            */
-            val shared_prefs = this.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-
-            val lockIntent = FlutterActivity.withNewEngine().dartEntrypointArgs(listOf(packageName.toString())).build(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(lockIntent)
+                val lockIntent = FlutterActivity.withNewEngine().dartEntrypointArgs(listOf(packageName.toString())).build(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(lockIntent)
+            }
         }
     }
 
@@ -62,8 +73,6 @@ class MainActivity: FlutterActivity() {
 
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         startActivity(intent)
-
-        Log.d("Applock", "Main activity started!")
     }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -73,6 +82,18 @@ class MainActivity: FlutterActivity() {
             if(call.method == "getInstalledApps") {
                 val installedApps = getInstalledApps()
                 result.success(installedApps)
+            }
+            else if(call.method == "lockPackage") {
+                val packageName = call.argument<String>("value")
+                AppOpeningAccessibilityService().togglePackageLock(packageName!!, true)
+            }
+            else if(call.method == "unlockPackage") {
+                val packageName = call.argument<String>("value")
+                AppOpeningAccessibilityService().togglePackageLock(packageName!!, false)
+            }
+            else if(call.method == "isPackageLocked") {
+                val packageName = call.argument<String>("value")
+                result.success(AppOpeningAccessibilityService().isPackageLocked(packageName!!))
             }
             else {
                 result.notImplemented()
