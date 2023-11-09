@@ -6,13 +6,9 @@ class TemplatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Templates'),
-      ),
       body: Center(
         child: const Text('TemplatePage'),
       ),
     );
   }
 }
-
